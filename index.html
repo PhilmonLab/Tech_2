@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF Vocabulary Study Quiz</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji','Segoe UI Emoji';
+      background: linear-gradient(135deg,#1e3c72 0%, #2a5298 100%);
+      min-height:100vh;
+      padding:24px;
+      color:#111;
+    }
+    .container {
+      max-width: 980px;
+      margin:0 auto;
+      background:#fff;
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow:0 20px 60px rgba(0,0,0,.35);
+    }
+    .header {
+      background: linear-gradient(135deg,#1e3c72 0%, #2a5298 100%);
+      color:#fff;
+      padding:32px;
+      text-align:center;
+    }
+    .header h1 { font-size:28px; margin-bottom:6px; }
+    .header p { opacity:.95; }
+
+    .progress {
+      background:#f2f3f5;
+      padding:20px 28px;
+      border-bottom:1px solid #e5e7eb;
+    }
+    .bar {
+      height:28px;
+      width:100%;
+      background:#e5e7eb;
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .fill {
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg,#22c55e 0%, #60a5fa 100%);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#fff;
+      font-weight:700;
+      transition:width .3s ease;
+    }
+    .stats {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+    .stat {
+      background:#fff;
+      border-radius:12px;
+      padding:8px 14px;
+      box-shadow:0 2px 10px rgba(0,0,0,.08);
+    }
+    .stat .label { font-size:12px; color:#6b7280; }
+    .stat .value { font-size:18px; font-weight:700; color:#2563eb; }
+
+    .content { padding:28px; }
+
+    .category-info {
+      background:#f8fafc;
+      border-left:4px solid #2563eb;
+      border-radius:12px;
+      padding:14px 16px;
+      margin-bottom:18px;
+    }
+
+    .question-card {
+      background:#f8f9fb;
+      border-radius:16px;
+      padding:24px;
+      box-shadow:0 6px 18px rgba(0,0,0,.08);
+    }
+    .q-head {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom:16px;
+      flex-wrap:wrap;
+    }
+    .q-num {
+      background:#2563eb;
+      color:#fff;
+      padding:6px 12px;
+      border-radius:999px;
+      font-weight:700;
+    }
+    .q-tag {
+      background:#7c3aed;
+      color:#fff;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:12px;
+    }
+    .q-text {
+      font-size:20px;
+      margin-bottom:18px;
+      line-height:1.5;
+    }
+
+    .options {
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .option {
+      background:#fff;
+      border:2px solid #e5e7eb;
+      border-radius:12px;
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      cursor:pointer;
+      transition:all .2s ease;
+    }
+    .option:hover {
+      border-color:#2563eb;
+      transform: translateX(4px);
+      box-shadow:0 6px 14px rgba(37,99,235,.18);
+    }
+    .opt-letter {
+      width:32px;
+      height:32px;
+      border-radius:999px;
+      background:#2563eb;
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      flex-shrink:0;
+    }
+    .option.selected { background:#eef2ff; border-color:#2563eb; }
+    .option.correct { background:#dcfce7; border-color:#16a34a; }
+    .option.correct .opt-letter { background:#16a34a; }
+    .option.wrong { background:#fee2e2; border-color:#dc2626; }
+    .option.wrong .opt-letter { background:#dc2626; }
+
+    .explain {
+      margin-top:14px;
+      background:#fff;
+      border-left:4px solid #2563eb;
+      border-radius:10px;
+      padding:12px 14px;
+      display:none;
+      line-height:1.5;
+    }
+    .explain.show { display:block; }
+
+    .actions {
+      display:flex;
+      gap:12px;
+      margin-top:18px;
+      flex-wrap:wrap;
+    }
+    .btn {
+      padding:12px 22px;
+      border:none;
+      border-radius:999px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .primary { background:#2563eb; color:#fff; }
+    .secondary { background:#6b7280; color:#fff; }
+    .success { background:#16a34a; color:#fff; }
+
+    .result {
+      background: linear-gradient(135deg,#2563eb 0%, #7c3aed 100%);
+      color:#fff;
+      text-align:center;
+      padding:38px;
+      border-radius:16px;
+    }
+    .result h2 { font-size:32px; }
+    .result .score {
+      font-size:56px;
+      font-weight:900;
+      margin:12px 0 18px;
+    }
+
+    .grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+      gap:14px;
+      margin-top:16px;
+    }
+    .tile {
+      background:rgba(255,255,255,.18);
+      padding:14px;
+      border-radius:12px;
+    }
+
+    .footer-note {
+      margin-top:18px;
+      font-size:14px;
+      color:#6b7280;
+      text-align:center;
+    }
+
+    @media (max-width: 768px) {
+      .q-text { font-size:18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>PDF Vocabulary Study Quiz</h1>
+      <p>Practice the vocabulary words taken from Weeks 2–5 in your PDFs.</p>
+    </div>
+
+    <div class="progress">
+      <div class="bar"><div id="fill" class="fill">0%</div></div>
+      <div class="stats">
+        <div class="stat"><div class="label">Progress</div><div id="progText" class="value">0/0</div></div>
+        <div class="stat"><div class="label">Correct</div><div id="correct" class="value" style="color:#16a34a">0</div></div>
+        <div class="stat"><div class="label">Wrong</div><div id="wrong" class="value" style="color:#dc2626">0</div></div>
+        <div class="stat"><div class="label">Accuracy</div><div id="acc" class="value">0%</div></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="category-info">
+        <strong>How it works:</strong> Read the vocabulary word and choose the correct meaning.
+      </div>
+
+      <div id="quiz"></div>
+
+      <div class="actions">
+        <button id="prev" class="btn secondary" style="display:none">◀ Previous</button>
+        <button id="next" class="btn primary">Next ▶</button>
+        <button id="finish" class="btn success" style="display:none">✅ Finish</button>
+      </div>
+
+      <div class="footer-note">
+        Words included: only the vocabulary words mentioned in your PDFs.
+      </div>
+    </div>
+  </div>
+
+<script>
+const ITEMS = [
+  { word:"versatile", meaning:"able to do many different things", week:"Week 2" },
+  { word:"automation", meaning:"using machines or software to do work automatically", week:"Week 2" },
+  { word:"precision", meaning:"being very exact and accurate", week:"Week 2" },
+  { word:"dexterity", meaning:"skill in using your hands or body well", week:"Week 2" },
+  { word:"integration", meaning:"joining different parts so they work together", week:"Week 2" },
+  { word:"protocol", meaning:"a set of rules or steps to follow", week:"Week 2" },
+  { word:"innovative", meaning:"new and creative", week:"Week 2" },
+  { word:"robust", meaning:"strong and able to work well", week:"Week 2" },
+  { word:"logistics", meaning:"the planning and organizing of moving people or things", week:"Week 2" },
+  { word:"unprecedented", meaning:"never happened before", week:"Week 2" },
+  { word:"assimilate", meaning:"to take in and understand new ideas or information", week:"Week 2" },
+  { word:"converging", meaning:"coming together from different directions", week:"Week 2" },
+  { word:"differential", meaning:"showing a difference between things", week:"Week 2" },
+  { word:"endowed", meaning:"given a special quality, ability, or advantage", week:"Week 2" },
+  { word:"likewise", meaning:"in the same way", week:"Week 2" },
+  { word:"vanishing", meaning:"disappearing", week:"Week 2" },
+  { word:"proposition", meaning:"a statement or idea that is suggested for consideration", week:"Week 2" },
+  { word:"scrutinize", meaning:"to examine something very carefully", week:"Week 2" },
+  { word:"peripheral", meaning:"not central or not the most important part", week:"Week 2" },
+  { word:"linear", meaning:"following a straight line or clear order", week:"Week 2" },
+
+  { word:"inherently", meaning:"in a natural or built-in way", week:"Week 3" },
+  { word:"monoculture", meaning:"a situation where only one type of idea or culture is dominant", week:"Week 3" },
+  { word:"dissimilarity", meaning:"difference; not being similar", week:"Week 3" },
+  { word:"agreeableness", meaning:"the quality of being kind, friendly, and easy to get along with", week:"Week 3" },
+  { word:"conscientious", meaning:"careful, responsible, and hardworking", week:"Week 3" },
+  { word:"disparities", meaning:"big differences, often unfair ones", week:"Week 3" },
+  { word:"disposition", meaning:"a person’s usual mood or natural way of behaving", week:"Week 3" },
+  { word:"ideological", meaning:"related to a set of beliefs or ideas", week:"Week 3" },
+
+  { word:"state", meaning:"to say something clearly", week:"Week 3" },
+  { word:"assert", meaning:"to say something confidently and strongly", week:"Week 3" },
+  { word:"argue", meaning:"to give reasons for a point of view", week:"Week 3" },
+  { word:"suggest", meaning:"to mention an idea or possibility", week:"Week 3" },
+  { word:"explain", meaning:"to make something clear and easy to understand", week:"Week 3" },
+  { word:"demonstrate", meaning:"to show something clearly with proof or examples", week:"Week 3" },
+
+  { word:"harnessed", meaning:"controlled and used for a purpose", week:"Week 4" },
+  { word:"inconsistent", meaning:"not staying the same; changing in an uneven way", week:"Week 4" },
+  { word:"conventional", meaning:"traditional or usual", week:"Week 4" },
+  { word:"degradation", meaning:"the process of becoming worse or damaged", week:"Week 4" },
+  { word:"finite", meaning:"limited; not endless", week:"Week 4" },
+  { word:"combustion", meaning:"the process of burning", week:"Week 4" },
+  { word:"hinders", meaning:"makes something more difficult", week:"Week 4" },
+  { word:"feasibility", meaning:"how possible or practical something is", week:"Week 4" },
+  { word:"competes", meaning:"tries to be better than others in the same area", week:"Week 4" },
+  { word:"deforestation", meaning:"the cutting down or removal of forests", week:"Week 4" },
+
+  { word:"claims", meaning:"says something is true, often without full proof", week:"Week 5" },
+  { word:"neutral", meaning:"not strongly on one side", week:"Week 5" },
+  { word:"informal", meaning:"relaxed and not very official", week:"Week 5" },
+  { word:"passive", meaning:"not active; receiving action instead of doing it", week:"Week 5" },
+  { word:"competently", meaning:"in a skilled and proper way", week:"Week 5" },
+  { word:"nevertheless", meaning:"even so; despite that", week:"Week 5" },
+  { word:"furthermore", meaning:"in addition; also", week:"Week 5" },
+  { word:"additionally", meaning:"also; as an extra point", week:"Week 5" },
+  { word:"therefore", meaning:"for that reason", week:"Week 5" }
+];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function makeQuestion(item) {
+  const wrongMeanings = shuffle(
+    ITEMS.filter(x => x.word !== item.word).map(x => x.meaning)
+  ).slice(0, 3);
+
+  const options = shuffle([item.meaning, ...wrongMeanings]);
+  const correctIndex = options.indexOf(item.meaning);
+
+  return {
+    word: item.word,
+    week: item.week,
+    meaning: item.meaning,
+    options,
+    correctIndex
+  };
+}
+
+const questions = shuffle(ITEMS).map(makeQuestion);
+
+let idx = 0;
+let answers = new Array(questions.length).fill(null);
+let correct = 0;
+let wrong = 0;
+
+const quizEl = document.getElementById("quiz");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+const finishBtn = document.getElementById("finish");
+const fill = document.getElementById("fill");
+const progText = document.getElementById("progText");
+const correctEl = document.getElementById("correct");
+const wrongEl = document.getElementById("wrong");
+const accEl = document.getElementById("acc");
+
+function render() {
+  const q = questions[idx];
+  const answered = answers[idx] !== null;
+  const chosen = answers[idx];
+
+  quizEl.innerHTML = `
+    <div class="question-card">
+      <div class="q-head">
+        <span class="q-num">Question ${idx + 1}/${questions.length}</span>
+        <span class="q-tag">${q.week}</span>
+      </div>
+
+      <div class="q-text">
+        What is the meaning of <strong>"${q.word}"</strong>?
+      </div>
+
+      <div class="options">
+        ${q.options.map((option, i) => `
+          <div class="option
+            ${chosen === i ? 'selected' : ''}
+            ${answered && i === q.correctIndex ? 'correct' : ''}
+            ${answered && chosen === i && i !== q.correctIndex ? 'wrong' : ''}"
+            data-i="${i}">
+            <div class="opt-letter">${String.fromCharCode(65 + i)}</div>
+            <div>${option}</div>
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="explain ${answered ? 'show' : ''}">
+        <strong>${q.word}</strong> means: <strong>${q.meaning}</strong>.
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll(".option").forEach(opt => {
+    opt.addEventListener("click", () => {
+      if (answers[idx] !== null) return;
+      selectAnswer(parseInt(opt.dataset.i, 10));
+    });
+  });
+
+  updateButtons();
+  updateProgress();
+}
+
+function selectAnswer(i) {
+  answers[idx] = i;
+  if (i === questions[idx].correctIndex) {
+    correct++;
+  } else {
+    wrong++;
+  }
+  render();
+}
+
+function updateButtons() {
+  prevBtn.style.display = idx > 0 ? "inline-block" : "none";
+
+  const allDone = answers.every(a => a !== null);
+  if (allDone) {
+    nextBtn.style.display = "none";
+    finishBtn.style.display = "inline-block";
+  } else {
+    nextBtn.style.display = "inline-block";
+    finishBtn.style.display = "none";
+  }
+}
+
+function updateProgress() {
+  const done = answers.filter(a => a !== null).length;
+  const pct = Math.round((done / questions.length) * 100);
+
+  fill.style.width = pct + "%";
+  fill.textContent = pct + "%";
+  progText.textContent = `${done}/${questions.length}`;
+  correctEl.textContent = correct;
+  wrongEl.textContent = wrong;
+  accEl.textContent = done ? Math.round((correct / done) * 100) + "%" : "0%";
+}
+
+prevBtn.addEventListener("click", () => {
+  if (idx > 0) {
+    idx--;
+    render();
+  }
+});
+
+nextBtn.addEventListener("click", () => {
+  if (idx < questions.length - 1) {
+    idx++;
+    render();
+  }
+});
+
+finishBtn.addEventListener("click", showResult);
+
+function showResult() {
+  const pct = Math.round((correct / questions.length) * 100);
+  const msg =
+    pct >= 90 ? "Excellent! 🎉" :
+    pct >= 75 ? "Great job! 🌟" :
+    pct >= 60 ? "Good effort 👍" :
+    "Keep practising 📚";
+
+  quizEl.innerHTML = `
+    <div class="result">
+      <div style="font-size:64px;">${pct >= 90 ? "🏆" : pct >= 75 ? "🌟" : pct >= 60 ? "👍" : "📚"}</div>
+      <h2>Quiz Complete</h2>
+      <div class="score">${pct}%</div>
+      <p>${msg}</p>
+
+      <div class="grid">
+        <div class="tile">
+          <div>Total words</div>
+          <div style="font-size:22px;font-weight:800;">${questions.length}</div>
+        </div>
+        <div class="tile">
+          <div>Correct</div>
+          <div style="font-size:22px;font-weight:800; color:#bbf7d0;">${correct}</div>
+        </div>
+        <div class="tile">
+          <div>Wrong</div>
+          <div style="font-size:22px;font-weight:800; color:#fecaca;">${wrong}</div>
+        </div>
+      </div>
+
+      <button class="btn primary" style="margin-top:18px;" onclick="location.reload()">🔄 Restart</button>
+    </div>
+  `;
+
+  prevBtn.style.display = "none";
+  nextBtn.style.display = "none";
+  finishBtn.style.display = "none";
+}
+
+render();
+</script>
+</body>
+</html>
